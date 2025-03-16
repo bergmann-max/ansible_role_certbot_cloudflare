@@ -1,7 +1,45 @@
 ---
-# roles/template/tasks/main.yml
+# roles/ansible_role_certbot_cloudflare/tasks/main.yml
 
-- name: Update repositories cache and install "foo" package
+- name: Install Certbot and Cloudflare DNS plugin
   ansible.builtin.apt:
-    name: foo
-    update_cache: yes
+    name:
+      - certbot
+      - python3-certbot-dns-cloudflare
+    state: present
+    update_cache: true
+
+- name: Create Cloudflare API token file
+  ansible.builtin.copy:
+    dest: "/etc/letsencrypt/cloudflare.ini"
+    content: |
+      dns_cloudflare_api_token = {{ ansible_role_certbot_cloudflare_api_token }}
+    mode: "u=rw,g=,o="
+
+- name: Check if Let's Encrypt certificate exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ ansible_role_certbot_cloudflare_domain }}/chain.pem"
+  register: ansible_role_certbot_cloudflare_cert_stat
+
+- name: Obtain Let's Encrypt certificate (DNS challenge)
+  ansible.builtin.command: >
+    certbot certonly
+    --dns-cloudflare
+    --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini
+    {% for domain in ansible_role_certbot_cloudflare_domains %}
+    -d {{ domain }}
+    {% endfor %}
+    --dns-cloudflare-propagation-seconds {{ ansible_role_certbot_cloudflare_propagation_seconds }}
+    --non-interactive
+    --agree-tos
+    --email {{ ansible_role_certbot_cloudflare_email }}
+  when: not ansible_role_certbot_cloudflare_cert_stat.stat.exists
+  args:
+    creates: "/etc/letsencrypt/live/{{ ansible_role_certbot_cloudflare_domain }}/fullchain.pem"
+
+- name: Set up automatic certificate renewal
+  ansible.builtin.cron:
+    name: "Certbot Auto-Renewal"
+    job: '/usr/bin/certbot renew --dns-cloudflare --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini --deploy-hook "{{ ansible_role_certbot_cloudflare_deploy_hook_command }}"'
+    minute: "0"
+    hour: "4"

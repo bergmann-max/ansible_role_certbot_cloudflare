@@ -1,9 +1,21 @@
 ---
-# roles/template/meta/main.yml
+# roles/ansible_role_certbot_cloudflare/meta/main.yml
 
 galaxy_info:
+  role_name: certbot_cloudflare
   author: Max Bergmann
-  description: An Ansible role template
+  description: >
+    An Ansible role to obtain and renew Let's Encrypt SSL certificates using Certbot
+    with Cloudflare DNS challenge. The role is webserver-agnostic and can be used
+    with nginx, apache2, or any other server.
   license: MIT
   min_ansible_version: "2.9"
+  galaxy_tags:
+    - ssl
+    - certbot
+    - cloudflare
+    - letsencrypt
+    - security
+    - automation
+
 dependencies: []

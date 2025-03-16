@@ -1,2 +1,27 @@
 ---
-# roles/template/defaults/main.yml
+# roles/ansible_role_certbot_cloudflare/defaults/main.yml
+
+# Email address used for Certbot registration
+ansible_role_certbot_cloudflare_email: admin@example.com
+
+# Cloudflare API Token (Use Ansible Vault to encrypt this in production!)
+ansible_role_certbot_cloudflare_api_token: "YOUR_CLOUDFLARE_API_TOKEN"
+
+# Command to run after certificate renewal (e.g., reload web server)
+ansible_role_certbot_cloudflare_deploy_hook_command: "systemctl reload nginx"  # Alternatives: systemctl reload apache2
+
+# Base domain name for SSL certificate
+ansible_role_certbot_cloudflare_domain: example.com
+
+# Include 'www' subdomain in the certificate (boolean)
+ansible_role_certbot_cloudflare_include_www: true
+
+# Dynamically generated domain list based on 'include_www' setting
+ansible_role_certbot_cloudflare_domains: >-
+  {{
+    [ansible_role_certbot_cloudflare_domain] +
+    (["www." + ansible_role_certbot_cloudflare_domain] if ansible_role_certbot_cloudflare_include_www else [])
+  }}
+
+# Wait time in seconds for DNS propagation
+ansible_role_certbot_cloudflare_propagation_seconds: 60
