@@ -1,0 +1,9 @@
+---
+# roles/template/meta/main.yml
+
+galaxy_info:
+  author: Max Bergmann
+  description: An Ansible role template
+  license: MIT
+  min_ansible_version: "2.9"
+dependencies: []
